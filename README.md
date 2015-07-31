@@ -1,4 +1,4 @@
-RDS (MySQL) has 3 different types of logs: general, slow queries and errors. Each type outputs logs in a different format. That's fine and dandy if you're going to look at them from a shell, but when you want to inject them in a structured format to allow [Logstash](https://www.elastic.co/products/logstash) to search them easily, it just plain sucks.
+RDS (MySQL) has 3 different types of logs: general, slow queries and errors. Each type outputs logs in a different format. That's fine and dandy if you're going to look at them from a shell, but if you want to inject them in [Logstash](https://www.elastic.co/products/logstash), you need them in a structured format.
 
 In order to structure those different types of logs, a little worker was needed. A castor (French for beaver. The beaver name was already used by a different project!). It eats those logs and poops them out cleanly (that's right, i went there!).
 
@@ -9,7 +9,9 @@ In order to structure those different types of logs, a little worker was needed.
 
 ## Supported databases
 
-At the moment, only the RDS MySQL database is supported as far as fetching the logs is concerned. But the parser should technically work with either RDS (MySQL), MySQL and MariaDB.
+At the moment, only the RDS MySQL database is supported as far as fetching the logs is concerned. But the parsers should technically work with either RDS (MySQL), MySQL and MariaDB.
+
+NOTE: Pull requests encouraged :)
 
 ## Setup
 
@@ -19,9 +21,45 @@ At the moment, only the RDS MySQL database is supported as far as fetching the l
 ## How it works
 
 + Based on the instance name and the log type, castor will fetch the current log file
-+ It will parse those logs based on the type and output them in JSON
++ It will parse those logs based on the type and output them in JSON to STDOUT
 + It will write the last marker in castor.json
 + Next time it runs, castor will check if there's a known last marker, if so, it'll asks for logs past that marker
+ 
+NOTE: You can use our Chef [cookbook](https://github.com/lightspeedretail/chef-castor) to deploy it also. The cookbook takes care of creating CRON jobs to run it periodically.
+
+## AWS authentication
+
+There's 2 ways to authenticate in AWS to be able to fetch the logs: local or with an IAM instance policy (recommended). Local mode reads ```~/.aws/credentials``` (default profile).
+
+If you use the ```-a``` flag, it will call the instance's metadata API to fetch temporary credendials defined by the IAM instance policy. How to create that policy is beyond the scope of this README, except to let you know that you need the follow rights:
+
+~~~ text
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "rds:Describe*",
+        "rds:ListTagsForResource",
+        "rds:DownloadDBLogFilePortion",
+        "ec2:DescribeAccountAttributes",
+        "ec2:DescribeAvailabilityZones",
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeVpcs"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    },
+    {
+      "Action": [
+        "cloudwatch:GetMetricStatistics"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}
+~~~
 
 ## Available CLI options
 
@@ -33,8 +71,10 @@ Required options:
     -t LOG_TYPE                      Log type (error, general, slowquery)
 
 Other options:
+    -a                               Configure temporary IAM role credentials
     -d DATA_DIR                      Data directory
-    -h, --help                       Help message
+    -D                               Enable debugging
+    -h, --help                       Help message                   Help message
 ~~~
 
 ## Examples
@@ -62,6 +102,7 @@ $ castor -n server_name -t slow >> logfile
 
 ## TODO
 
++ Build a gem and make it available in rubygems.org
 + Writing tests
 + Implement different types of inputs. Like using STDIN or reading a file.
 
