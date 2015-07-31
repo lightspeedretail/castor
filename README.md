@@ -62,6 +62,7 @@ $ castor -n server_name -t slow >> logfile
 
 ## TODO
 
++ Writing tests
 + Implement different types of inputs. Like using STDIN or reading a file.
 
 ## Contributing
