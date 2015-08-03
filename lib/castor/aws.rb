@@ -18,8 +18,9 @@ module Castor
     end
 
     class Auth
-      def initialize(mode)
+      def initialize(mode, iam_profile)
         @dir = "#{ENV['HOME']}/.aws"
+        @iam_profile_name = iam_profile
         write_config if mode == 'aws'
       end
 
@@ -39,7 +40,8 @@ module Castor
       end
 
       def credentials
-        credentials = JSON.parse(Net::HTTP.get(URI('http://169.254.169.254/latest/meta-data/iam/security-credentials/aws-rds-readonly-download-logs-role')))
+        puts "http://169.254.169.254/latest/meta-data/iam/security-credentials/#{@iam_profile_name}"
+        credentials = JSON.parse(Net::HTTP.get(URI("http://169.254.169.254/latest/meta-data/iam/security-credentials/#{@iam_profile_name}")))
         access = credentials['AccessKeyId']
         secret = credentials['SecretAccessKey']
         token = credentials['Token']

@@ -11,6 +11,7 @@ module Castor
       @options = @cli.options
       @fetcher = Castor::Fetcher.new(@options)
       @log_type = @options['log_type']
+      @iam_profile_name = @options['iam_profile_name']
       @instance_name = @options['instance_name']
       @data_dir = @cli.data_dir
       @state_file = "#{@data_dir}/castor.#{@options['instance_name']}.#{@options['log_type']}.state.json"
@@ -57,7 +58,8 @@ module Castor
 
     def auth
       mode = @options['aws'] ? 'aws' : 'local'
-      Castor::AWS::Auth.new(mode)
+      profile = @options['iam_profile_name'] ? @options['iam_profile_name'] : 'aws-rds-readonly-download-logs-role'
+      Castor::AWS::Auth.new(mode, profile)
     end
 
     def marker?

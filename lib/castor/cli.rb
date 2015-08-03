@@ -10,6 +10,7 @@ module Castor
 
       @data_dir = @options['data_dir'].nil? ? '/tmp' : @options['data_dir']
       @lock_file = "#{@data_dir}/castor.#{@options['instance_name']}.#{@options['log_type']}.lock"
+      @iam_profile_name = @options['iam_profile'].nil? ? 'aws-rds-readonly-download-logs-role' : @options['iam_profile']
 
       pre_flight
     end
@@ -35,6 +36,10 @@ module Castor
 
         opts.on('-a', 'Configure temporary IAM role credentials') do |aws|
           @options['aws'] = aws
+        end
+
+        opts.on('-p IAM_PROFILE', String, 'IAM Profile Name') do |iamprofile|
+          @options['iam_profile_name'] = iamprofile
         end
 
         opts.on('-d DATA_DIR', String, 'Data directory') do |data|
