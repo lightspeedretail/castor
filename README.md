@@ -72,6 +72,7 @@ Required options:
 
 Other options:
     -a                               Configure temporary IAM role credentials
+    -p IAM_PROFILE                   IAM Profile Name
     -d DATA_DIR                      Data directory
     -D                               Enable debugging
     -h, --help                       Help message                   Help message
