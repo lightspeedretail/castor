@@ -40,7 +40,6 @@ module Castor
       end
 
       def credentials
-        puts "http://169.254.169.254/latest/meta-data/iam/security-credentials/#{@iam_profile_name}"
         credentials = JSON.parse(Net::HTTP.get(URI("http://169.254.169.254/latest/meta-data/iam/security-credentials/#{@iam_profile_name}")))
         access = credentials['AccessKeyId']
         secret = credentials['SecretAccessKey']
