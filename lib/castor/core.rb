@@ -60,7 +60,6 @@ module Castor
     def auth
       mode = @options['aws'] ? 'aws' : 'local'
       profile = @options['iam_profile_name'] ? @options['iam_profile_name'] : 'aws-rds-readonly-download-logs-role'
-      puts profile
       Castor::AWS::Auth.new(mode, profile)
     end
 
