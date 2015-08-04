@@ -25,6 +25,7 @@ module Castor
       auth
       # Exit if we only want to configure AWS
       exit if @options['aws'] && @options.count == 1
+      exit if @options['aws'] && @options['iam_profile_name'] && @options.count == 2
 
       @size = @fetcher.file_size(@log_type, @instance_name)
       abort('File is empty. Exiting.') if @size == 0
@@ -59,6 +60,7 @@ module Castor
     def auth
       mode = @options['aws'] ? 'aws' : 'local'
       profile = @options['iam_profile_name'] ? @options['iam_profile_name'] : 'aws-rds-readonly-download-logs-role'
+      puts profile
       Castor::AWS::Auth.new(mode, profile)
     end
 
