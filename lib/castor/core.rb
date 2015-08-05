@@ -66,7 +66,7 @@ module Castor
     def marker?
       if File.exist?(@state_file)
         if @state[@instance_name] && @state[@instance_name][@log_type]
-          @marker = @state[@instance_name][@log_type]['last_marker']
+          @marker = @state[@instance_name][@log_type]['last_marker'] == nil : @state[@instance_name][@log_type]['last_marker'] ? 0
         else
           @marker = 0
         end
