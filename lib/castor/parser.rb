@@ -52,7 +52,7 @@ module Castor
         log['rds_log_type'] = 'general'
         if parts[0] =~ /(rdsdbbin|Tcp|Time)/
           log['message'] = line.chomp("\n")
-        else
+        elsif parts[0] =~ /^[0-9]/
           log['connection_id'] = i == 2 ? parts[2] : parts[0]
           log['query_type'] = i == 2 ? parts[3].downcase : parts[1].downcase
           log['query'] = parts[i + 2..-1].join(' ')

@@ -50,6 +50,10 @@ module Castor
           @options['debug'] = debug
         end
 
+        opts.on('-r', 'AWS region (defaults to us-east-1)') do |region|
+          @options['region'] = region
+        end
+
         opts.on_tail('-h', '--help', 'Help message') do
           puts opts
           exit
