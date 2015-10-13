@@ -5,11 +5,6 @@ require 'net/http'
 
 module Castor
   class AWS
-    def initialize
-      url = 'https://github.com/aws/aws-cli'
-      fail "AWS CLI isn't functional. Please see: #{url}" unless system('which aws > /dev/null 2>&1')
-    end
-
     def run(cmd)
       cli = Mixlib::ShellOut.new(cmd)
       cli.run_command

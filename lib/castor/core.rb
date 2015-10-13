@@ -6,10 +6,11 @@ require 'json'
 
 module Castor
   class Core
-    def initialize
+    def initialize # rubocop:disable Metrics/MethodLength
       @cli = Castor::CLI.new
       @options = @cli.options
-      @fetcher = Castor::Fetcher.new(@options)
+      @region = @options['region'] || 'us-east-1'
+      @fetcher = Castor::Fetcher.new(@options, @region)
       @log_type = @options['log_type']
       @iam_profile_name = @options['iam_profile_name']
       @instance_name = @options['instance_name']
@@ -80,10 +81,10 @@ module Castor
       log_file = rotated? ? @fetcher.previous_log_file(@instance_name, @log_type) : "#{@log_type}/mysql-#{@log_type}.log"
 
       while data_pending
-        results = JSON.parse(@fetcher.fetch(log_file, @instance_name, @marker, 1000))
-        @marker = results['Marker']
-        data_pending = results['AdditionalDataPending']
-        data = results['LogFileData']
+        results = @fetcher.fetch(log_file, @instance_name, @marker, 1000)
+        @marker = results['marker']
+        data_pending = results['additional_data_pending']
+        data = results['log_file_data']
 
         if data.nil?
           abort('No new logs to process. Exiting.')
