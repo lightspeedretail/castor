@@ -101,7 +101,7 @@ module Castor
     end
 
     def write_state # rubocop:disable Metrics/MethodLength
-      current = File.exist?(@state_file) ? JSON.parse(File.read(@state_file)) : {}
+      current = File.exist?(@state_file) && File.size(@state_file) > 0 ? JSON.parse(File.read(@state_file)) : {}
       data = { @instance_name =>
         { @log_type =>
           {
