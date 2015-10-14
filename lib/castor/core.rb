@@ -16,7 +16,7 @@ module Castor
       @instance_name = @options['instance_name']
       @data_dir = @cli.data_dir
       @state_file = "#{@data_dir}/castor.#{@options['instance_name']}.#{@options['log_type']}.state.json"
-      @state = File.exist?(@state_file) ? JSON.parse(File.read(@state_file)) : {}
+      @state = File.exist?(@state_file) && File.size(@state_file) > 0 ? JSON.parse(File.read(@state_file)) : {}
       @parser = Castor::Parser.new(@options)
     end
 
