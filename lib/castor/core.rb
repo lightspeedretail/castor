@@ -87,7 +87,8 @@ module Castor
         data = results['log_file_data']
 
         if data.nil?
-          abort('No new logs to process. Exiting.')
+          puts 'No new logs to process. Exiting.'
+          exit(0)
         else
           @parser.slowquery(data.split("\n"), @instance_name) if @log_type == 'slowquery'
           @parser.general(data.split("\n"), @instance_name) if @log_type == 'general'
