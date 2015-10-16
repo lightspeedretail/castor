@@ -80,8 +80,23 @@ module Castor
       FileUtils.touch(@lock_file)
     end
 
-    def locked?
-      fail 'Found a lock. Exiting.' if File.exist?(@lock_file)
+    def locked? # rubocop:disable Metrics/MethodLength
+      if File.exist?(@lock_file)
+        # If the lock file is older than 15 minutes
+        # chances are something went wrong. Remove it
+        # and start processing logs again.
+        mtime = File.mtime(@lock_file).to_i
+        now = Time.now.to_i
+
+        if now - 900 > mtime
+          unlock
+          false
+        else
+          true
+        end
+      else
+        false
+      end
     end
 
     def unlock
