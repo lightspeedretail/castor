@@ -1,6 +1,5 @@
 require 'fileutils'
 require 'json'
-require 'mixlib/shellout'
 require 'net/http'
 
 module Castor
