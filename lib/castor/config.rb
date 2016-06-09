@@ -26,7 +26,7 @@ module Castor
     option :log_type,
       :short => '-t LOG_TYPE',
       :long => '--type LOG_TYPE',
-      :description => 'Log type to fetch/parse (general, slowquery, error)',
+      :description => 'Log type to fetch/parse',
       :required => true,
       :in => %w(general slowquery error)
 
