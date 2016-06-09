@@ -11,7 +11,7 @@ module Castor
     end
 
     def debug(msg)
-      logger.debug(msg)
+      logger(STDERR).debug(msg)
     end
 
     def info(msg)
