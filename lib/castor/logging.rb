@@ -13,18 +13,5 @@ module Castor
     def debug(msg)
       logger(STDERR).debug(msg)
     end
-
-    def info(msg)
-      logger.info(msg)
-    end
-
-    def warning(msg)
-      logger.warn(msg)
-    end
-
-    def error(msg, exit = true)
-      logger(STDERR).error(msg)
-      exit(1) if exit
-    end
   end
 end
