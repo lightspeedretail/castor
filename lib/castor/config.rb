@@ -40,5 +40,10 @@ module Castor
       :long => '--region REGION',
       :default => 'us-east-1',
       :description => 'AWS region (default: us-east-1)'
+
+    option :version,
+      :short => '-v',
+      :long => '--version',
+      :description => 'Print version'
   end
 end
