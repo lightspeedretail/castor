@@ -1,4 +1,4 @@
 #!/usr/bin/env ruby
 
-require_relative '../lib/castor/core'
-Castor::Core.new.run
+require_relative '../lib/castor/cli'
+Castor::CLI.new

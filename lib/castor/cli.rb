@@ -1,106 +1,85 @@
+require_relative 'config'
+require_relative 'logging'
+require_relative 'utils'
+require_relative 'rds'
+require_relative 'version'
+require 'aws-sdk'
 require 'fileutils'
-require 'optparse'
 
 module Castor
   class CLI
-    attr_reader :options, :data_dir
+    include Logging
+    include RDS
+    include Utils
 
     def initialize
-      cli_parser
+      config
 
-      @data_dir = @options['data_dir'].nil? ? '/tmp' : @options['data_dir']
-      @lock_file = "#{@data_dir}/castor.#{@options['instance_name']}.#{@options['log_type']}.lock"
-      @iam_profile_name = @options['iam_profile'].nil? ? 'aws-rds-readonly-download-logs-role' : @options['iam_profile']
+      @data_dir = @config[:data_directory]
+      @debug = @config[:debug]
+      @instance = @config[:instance]
+      @log_type = @config[:log_type]
+      @lock_file = "#{@data_dir}/castor.#{@instance}.#{@log_type}.lock"
+      @size = log_file_size(@log_type, @instance)
+      @state_file = "#{@data_dir}/castor.#{@instance}.#{@log_type}.state.json"
+      @state = File.exist?(@state_file) && File.size(@state_file) > 0 ? JSON.parse(File.read(@state_file)) : {}
 
       pre_flight
+      run
     end
 
-    def cli_parser # rubocop:disable Metrics/MethodLength
-      @options = {}
+    def config
+      cli = Castor::Config.new
 
-      @cli_parser = OptionParser.new do |opts|
-        opts.banner = 'Usage: castor [options]'
-        opts.separator ''
-        opts.separator 'Required options:'
-
-        opts.on('-n INSTANCE_NAME', 'Instance name') do |name|
-          @options['instance_name'] = name
-        end
-
-        opts.on('-t LOG_TYPE', String, %w(error general slowquery), 'Log type (error, general, slowquery)') do |log|
-          @options['log_type'] = log
-        end
-
-        opts.separator ''
-        opts.separator 'Other options:'
-
-        opts.on('-a', 'Configure temporary IAM role credentials') do |aws|
-          @options['aws'] = aws
-        end
-
-        opts.on('-p IAM_PROFILE', String, 'IAM Profile Name') do |iamprofile|
-          @options['iam_profile_name'] = iamprofile
-        end
-
-        opts.on('-d DATA_DIR', String, 'Data directory') do |data|
-          @options['data_dir'] = data
-        end
-
-        opts.on('-D', 'Enable debugging') do |debug|
-          @options['debug'] = debug
-        end
-
-        opts.on('-r REGION', 'AWS region (defaults to us-east-1)') do |region|
-          @options['region'] = region
-        end
-
-        opts.on_tail('-h', '--help', 'Help message') do
-          puts opts
-          exit
-        end
+      if ARGV.empty?
+        puts cli.opt_parser
+        exit(1)
       end
 
-      @cli_parser.parse!
+      cli.banner = 'Usage: castor (options)'
+      cli.parse_options
+      @config = cli.config
+
+      aws_config = { region: @config[:region] }
+      aws_config[:profile] = @config[:profile] if @config[:profile]
+      Aws.config.update(aws_config)
     end
 
     def pre_flight
-      if @options.empty?
-        puts @cli_parser
-        exit(1)
-      else
-        FileUtils.mkdir_p(@data_dir) unless Dir.exist?(@data_dir)
-        unless @options['aws']
-          puts @cli_parser unless @options['log_type']
-          puts @cli_parser unless @options['instance_name']
-        end
+      FileUtils.mkdir_p(@data_dir) unless Dir.exist?(@data_dir)
+    end
+
+    def run
+      version if @config[:version]
+      debug("castor v#{Castor::VERSION}") if @debug
+      debug("Processing '#{@log_type}' logs for '#{@instance}'") if @debug
+
+      exit if @size == 0
+      lock
+      marker
+
+      # Need to be called twice if rotated. The first run
+      # will process the logs from the last log file. The
+      # second will process the current file. Then we
+      # reset the marker to be sure we process the entire
+      # current file.
+      if rotated?
+        debug('Rotation detected') if @debug
+        processing
+        @marker = 0
+        write_state
+        # Once we're done processing the remainder of the
+        # last log file, exit. We'll start fresh on the
+        # next run.
+        exit
       end
-    end
 
-    def lock
-      FileUtils.touch(@lock_file)
-    end
+      debug('Normal processing') if @debug
+      processing
+      write_state
 
-    def locked? # rubocop:disable Metrics/MethodLength
-      if File.exist?(@lock_file)
-        # If the lock file is older than 15 minutes
-        # chances are something went wrong. Remove it
-        # and start processing logs again.
-        mtime = File.mtime(@lock_file).to_i
-        now = Time.now.to_i
-
-        if now - 900 > mtime
-          unlock
-          false
-        else
-          true
-        end
-      else
-        false
-      end
-    end
-
-    def unlock
-      FileUtils.rm(@lock_file) if File.exist?(@lock_file)
+    ensure
+      unlock
     end
   end
 end
