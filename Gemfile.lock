@@ -7,6 +7,7 @@ GEM
       jmespath (~> 1.0)
     aws-sdk-resources (2.3.8)
       aws-sdk-core (= 2.3.8)
+    deep_merge (1.0.1)
     jmespath (1.2.4)
       json_pure (>= 1.8.1)
     json_pure (1.8.3)
@@ -17,6 +18,7 @@ PLATFORMS
 
 DEPENDENCIES
   aws-sdk
+  deep_merge
   mixlib-cli
 
 BUNDLED WITH
