@@ -2,16 +2,10 @@ require 'date'
 require 'json'
 
 module Castor
-  class Parser
-    attr_reader :timestamp, :database
-
-    def initialize(options)
-      @options = options
-    end
-
-    def error(logs, instance_name) # rubocop:disable Metrics/MethodLength
+  module Parser
+    def error(logs, instance)
       logs.each do |line|
-        puts line.inspect if @options['debug']
+        debug(line) if @debug
 
         next if line.chomp("\n").empty?
 
@@ -19,7 +13,7 @@ module Castor
         @timestamp = DateTime.parse([parts[0], parts[1]].join(' ')).to_time.to_i
 
         log = {}
-        log['rds_instance'] = instance_name
+        log['rds_instance'] = instance
         log['rds_log_type'] = 'error'
 
         if parts[0] =~ /\d\d\d\d-\d\d-\d\d/
@@ -30,14 +24,14 @@ module Castor
           log['message'] = line.chomp("\n")
         end
         puts JSON.generate(log)
-
-        puts '' if @options['debug']
       end
     end
 
-    def general(logs, instance_name) # rubocop:disable Metrics/MethodLength
+    def general(logs, instance)
       logs.each do |line|
-        puts line.inspect if @options['debug']
+        debug(line) if @debug
+
+        next if line.chomp("\n").empty?
 
         parts = line.split
         @timestamp = DateTime.parse([parts[0], parts[1]].join(' ')).to_time.to_i if parts[1] =~ /\d\d\:\d\d\:\d\d/
@@ -48,7 +42,7 @@ module Castor
         parts[1] =~ /\d\d\:\d\d\:\d\d/ ? i = 2 : i = 0
 
         log = {}
-        log['rds_instance'] = instance_name
+        log['rds_instance'] = instance
         log['rds_log_type'] = 'general'
         if parts[0] =~ /(rdsdbbin|Tcp|Time)/
           log['message'] = line.chomp("\n")
@@ -59,14 +53,12 @@ module Castor
         end
         log['timestamp'] = @timestamp
         puts JSON.generate(log)
-
-        puts '' if @options['debug']
       end
     end
 
-    def slowquery(logs, instance_name) # rubocop:disable Metrics/MethodLength
+    def slowquery(logs, instance)
       logs.slice_before(/# User@Host/).each do |slice|
-        puts slice.inspect if @options['debug']
+        debug(slice) if @debug
 
         # We expect the first line of a slice to be a User@Host line.
         # Skip if it's not, which means we're starting to process in the
@@ -90,25 +82,22 @@ module Castor
         next unless slice.count == 4
 
         @timestamp = slice[2].split('=')[1].chomp(';')
-        if slice.count >= 4
-          slice_0 = slice[0].split
-          slice_1 = slice[1].split
+        slice_0 = slice[0].split
+        slice_1 = slice[1].split
 
-          log = {}
-          log['rds_instance'] = instance_name
-          log['rds_log_type'] = 'slowquery'
-          log['database'] = @database
-          log['connection_id'] = slice_0.last
-          log['who'] = slice_0[2..4].join
-          log['query_time'] = slice_1[2]
-          log['lock_time'] = slice_1[4]
-          log['rows_sent'] = slice_1[6]
-          log['rows_examined'] = slice_1[8]
-          log['query'] = slice[3].chomp(";\n")
-          log['timestamp'] = @timestamp
-          puts JSON.generate(log)
-        end
-        puts '' if @options['debug']
+        log = {}
+        log['rds_instance'] = instance
+        log['rds_log_type'] = 'slowquery'
+        log['database'] = @database
+        log['connection_id'] = slice_0.last
+        log['who'] = slice_0[2..4].join
+        log['query_time'] = slice_1[2]
+        log['lock_time'] = slice_1[4]
+        log['rows_sent'] = slice_1[6]
+        log['rows_examined'] = slice_1[8]
+        log['query'] = slice[3].chomp(";\n")
+        log['timestamp'] = @timestamp
+        puts JSON.generate(log)
       end
     end
   end
