@@ -51,8 +51,8 @@ module Castor
 
     def run
       version if @config[:version]
-      debug("castor v#{Castor::VERSION}")
-      debug("Processing '#{@log_type}' logs for '#{@instance}'")
+      debug("castor v#{Castor::VERSION}") if @debug
+      debug("Processing '#{@log_type}' logs for '#{@instance}'") if @debug
 
       exit if @size == 0
       lock
