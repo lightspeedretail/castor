@@ -4,10 +4,10 @@ require 'json'
 module Castor
   module Parser
     def error(logs, instance)
+      exit if logs.empty?
+
       logs.each do |line|
         debug(line) if @debug
-
-        next if line.chomp("\n").empty?
 
         parts = line.split
         @timestamp = DateTime.parse([parts[0], parts[1]].join(' ')).to_time.to_i
@@ -28,12 +28,14 @@ module Castor
     end
 
     def general(logs, instance)
+      exit if logs.empty?
+
       logs.each do |line|
         debug(line) if @debug
 
-        next if line.chomp("\n").empty?
-
         parts = line.split
+        next if parts.count == 1
+
         @timestamp = DateTime.parse([parts[0], parts[1]].join(' ')).to_time.to_i if parts[1] =~ /\d\d\:\d\d\:\d\d/
 
         # Some logs have 2 extra fields at the beginning. Date
@@ -57,6 +59,8 @@ module Castor
     end
 
     def slowquery(logs, instance)
+      exit if logs.empty?
+
       logs.slice_before(/# User@Host/).each do |slice|
         debug(slice) if @debug
 
