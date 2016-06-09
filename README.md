@@ -2,11 +2,6 @@ RDS (MySQL) has 3 different types of logs: general, slow queries and errors. Eac
 
 In order to structure those different types of logs, a little worker was needed. A castor (French for beaver. The beaver name was already used by a different project!). It eats those logs and poops them out cleanly (that's right, i went there!).
 
-## Requirements
-
-+ A properly configured [AWS CLI toolkit](https://aws.amazon.com/cli/).
-+ Ruby (tested on v2.0.0 and v2.2.2). Only core librarires are used, to it might work on v1.8.7 and v1.9.3.
-
 ## Supported databases
 
 At the moment, only the RDS MySQL database is supported as far as fetching the logs is concerned. But the parsers should technically work with either RDS (MySQL), MySQL and MariaDB.
@@ -27,11 +22,7 @@ NOTE: Pull requests encouraged :)
  
 NOTE: You can use our Chef [cookbook](https://github.com/lightspeedretail/chef-castor) to deploy it also. The cookbook takes care of creating CRON jobs to run it periodically.
 
-## AWS authentication
-
-There's 2 ways to authenticate in AWS to be able to fetch the logs: local or with an IAM instance policy (recommended). Local mode reads ```~/.aws/credentials``` (default profile).
-
-If you use the ```-a``` flag, it will call the instance's metadata API to fetch temporary credendials defined by the IAM instance policy. How to create that policy is beyond the scope of this README, except to let you know that you need the follow rights:
+## AWS Instance profile
 
 ~~~ text
 {
@@ -64,28 +55,25 @@ If you use the ```-a``` flag, it will call the instance's metadata API to fetch 
 ## Available CLI options
 
 ~~~ text
-Usage: castor [options]
-
-Required options:
-    -n INSTANCE_NAME                 Instance name
-    -t LOG_TYPE                      Log type (error, general, slowquery)
-
-Other options:
-    -a                               Configure temporary IAM role credentials
-    -p IAM_PROFILE                   IAM Profile Name
-    -d DATA_DIR                      Data directory
-    -D                               Enable debugging
-    -h, --help                       Help message                   Help message
+Usage: castor (options)
+    -d DATA_DIRECTORY,               Data directory (default: /tmp/castor)
+        --data-directory
+    -D, --debug                      Debugging mode (default: false)
+    -i, --instance INSTANCE          RDS instance name (required)
+    -t, --type LOG_TYPE              Log type to fetch/parse (required) (included in ['general', 'slowquery', 'error'])
+    -p, --profile PROFILE            AWS profile to use in ~/.aws/credentials
+    -r, --region REGION              AWS region (default: us-east-1)
+    -v, --version                    Print version
 ~~~
 
 ## Examples
 
 ~~~ text
-$ castor -n server_name -t slow
+$ castor -i server_name -t slow
 ~~~
 
 ~~~ text
-$ castor -n server_name -t slow -d /var/lib/castor
+$ castor -i server_name -t slow -d /var/lib/castor
 ~~~
 
 It will output something like this:
@@ -98,7 +86,7 @@ It will output something like this:
 Lastly, you could pipe that output into a file, or another tool.
 
 ~~~ text
-$ castor -n server_name -t slow >> logfile
+$ castor -i server_name -t slow >> logfile
 ~~~
 
 ## TODO
