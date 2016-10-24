@@ -6,12 +6,25 @@ module Castor
     def error(logs, instance)
       exit if logs.empty?
 
+      log = nil
+
       logs.each do |line|
         debug(line) if @debug
 
         parts = line.split
-        @timestamp = DateTime.parse([parts[0], parts[1]].join(' ')).to_time.to_i
-
+        begin
+            @timestamp = DateTime.parse([parts[0], parts[1]].join(' ')).to_time.to_i
+        rescue ArgumentError
+            # Assume extra text for previous log
+            if log != nil
+                log['message'] += "\n" + line
+            end
+            next
+        end
+        if log != nil
+            # Put old log now we've found the end of the previous one
+            puts JSON.generate(log)
+        end
         log = {}
         log['rds_instance'] = instance
         log['rds_log_type'] = 'error'
@@ -23,7 +36,10 @@ module Castor
           log['timestamp'] = Time.new.to_i
           log['message'] = line.chomp("\n")
         end
-        puts JSON.generate(log)
+      end
+      if log != nil
+          # Put last log item
+          puts JSON.generate(log)
       end
     end
 

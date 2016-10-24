@@ -45,5 +45,10 @@ module Castor
       :short => '-v',
       :long => '--version',
       :description => 'Print version'
+
+    option :db_type,
+      :long => '--db-type (mysql|postgres)',
+      :default => "mysql",
+      :description => 'Database type: mysql (default) or postgres'
   end
 end

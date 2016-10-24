@@ -19,6 +19,7 @@ module Castor
       @debug = @config[:debug]
       @instance = @config[:instance]
       @log_type = @config[:log_type]
+      @db_type = @config[:db_type]
       @lock_file = "#{@data_dir}/castor.#{@instance}.#{@log_type}.lock"
       @size = log_file_size(@log_type, @instance)
       @state_file = "#{@data_dir}/castor.#{@instance}.#{@log_type}.state.json"

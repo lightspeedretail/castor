@@ -31,7 +31,7 @@ module Castor
 
     def processing
       data_pending = true
-      log_file = rotated? ? previous_log_file(@log_type, @instance) : "#{@log_type}/mysql-#{@log_type}.log"
+      log_file = (rotated? || @db_type == "postgres") ? previous_log_file(@log_type, @instance) : "#{@log_type}/mysql-#{@log_type}.log"
 
       while data_pending
         results = fetch(log_file, @instance, @marker, 1000)
