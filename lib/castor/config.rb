@@ -35,6 +35,16 @@ module Castor
       :long => '--profile PROFILE',
       :description => 'AWS profile to use in ~/.aws/credentials'
 
+    option :access_key,
+      :short => '-a access_key',
+      :long => '--access-key access_key',
+      :description => 'AWS access key ID. Should be used along with --secret-key'
+
+    option :secret_key,
+      :short => '-s secret_key',
+      :long => '--secret-key secret_key',
+      :description => 'AWS secret access key. Should be used along with --access-key'
+
     option :region,
       :short => '-r REGION',
       :long => '--region REGION',
