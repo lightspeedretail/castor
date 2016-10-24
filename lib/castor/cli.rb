@@ -42,6 +42,7 @@ module Castor
 
       aws_config = { region: @config[:region] }
       aws_config[:profile] = @config[:profile] if @config[:profile]
+      aws_config[:credentials] = Aws::Credentials.new(@config[:access_key], @config[:secret_key]) if @config[:access_key]
       Aws.config.update(aws_config)
     end
 
