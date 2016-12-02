@@ -22,6 +22,7 @@ module Castor
         else
           log['timestamp'] = Time.new.to_i
           log['message'] = line.chomp("\n")
+          log['rds_tags'] = @instance_tags
         end
         puts JSON.generate(log)
       end
@@ -54,6 +55,7 @@ module Castor
           log['query'] = parts[i + 2..-1].join(' ')
         end
         log['timestamp'] = @timestamp
+        log['rds_tags'] = @instance_tags
         puts JSON.generate(log)
       end
     end
@@ -101,6 +103,7 @@ module Castor
         log['rows_examined_i'] = slice_1[8]
         log['query'] = slice[3].chomp(";\n")
         log['timestamp'] = @timestamp
+        log['rds_tags'] = @instance_tags
         puts JSON.generate(log)
       end
     end
