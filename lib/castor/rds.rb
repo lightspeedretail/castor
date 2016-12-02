@@ -22,13 +22,13 @@ module Castor
     def get_instance_tags(instance)
       sleep_duration = 5
       debug("instance: #{instance}") if @debug
-      instance_arn = rds.describe_db_instances(db_instance_identifier: instance)
+      instance_details = rds.describe_db_instances(db_instance_identifier: instance)
       # Retrieve tags
-      tags = rds.list_tags_for_resource(resource_name: "#{instance_arn.db_instances[0].db_instance_arn}")
+      tags = rds.list_tags_for_resource(resource_name: instance_details.db_instances[0].db_instance_arn.to_s)
       # Format them
       instance_tags = {}
       tags.tag_list.each do |tag|
-        instance_tags["#{tag.key}"] = tag.value
+        instance_tags[tag.key.to_s] = tag.value
       end
       return instance_tags
     rescue Aws::RDS::Errors::Throttling
