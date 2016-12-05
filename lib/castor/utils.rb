@@ -33,6 +33,9 @@ module Castor
       data_pending = true
       log_file = rotated? ? previous_log_file(@log_type, @instance) : "#{@log_type}/mysql-#{@log_type}.log"
 
+      # Retrieve RDS instance tags
+      @instance_tags = get_instance_tags(@instance)
+
       while data_pending
         results = fetch(log_file, @instance, @marker, 1000)
         @marker = results['marker']

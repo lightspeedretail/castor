@@ -19,6 +19,24 @@ module Castor
       retry
     end
 
+    def get_instance_tags(instance)
+      sleep_duration = 5
+      debug("instance: #{instance}") if @debug
+      instance_details = rds.describe_db_instances(db_instance_identifier: instance)
+      # Retrieve tags
+      tags = rds.list_tags_for_resource(resource_name: instance_details.db_instances[0].db_instance_arn.to_s)
+      # Format them
+      instance_tags = {}
+      tags.tag_list.each do |tag|
+        instance_tags[tag.key.to_s] = tag.value
+      end
+      return instance_tags
+    rescue Aws::RDS::Errors::Throttling
+      sleep(sleep_duration)
+      sleep_duration += 5
+      retry
+    end
+
     def log_file_size(log_type, instance)
       sleep_duration = 5
       files_info = rds.describe_db_log_files(db_instance_identifier: instance)
