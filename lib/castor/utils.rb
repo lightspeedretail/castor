@@ -31,7 +31,7 @@ module Castor
 
     def processing
       data_pending = true
-      log_file = rotated? ? previous_log_file(@log_type, @instance) : "#{@log_type}/mysql-#{@log_type}.log"
+      log_file = (rotated? || @db_type == "postgres") ? previous_log_file(@log_type, @instance) : "#{@log_type}/mysql-#{@log_type}.log"
 
       # Retrieve RDS instance tags
       @instance_tags = get_instance_tags(@instance)

@@ -26,7 +26,7 @@ module Castor
     option :log_type,
       :short => '-t LOG_TYPE',
       :long => '--type LOG_TYPE',
-      :description => 'Log type to fetch/parse',
+      :description => 'Log type to fetch/parse (PostgreSQL only has "error")',
       :required => true,
       :in => %w(general slowquery error)
 
@@ -55,5 +55,10 @@ module Castor
       :short => '-v',
       :long => '--version',
       :description => 'Print version'
+
+    option :db_type,
+      :long => '--db-type (mysql|postgres)',
+      :default => "mysql",
+      :description => 'Database type: mysql (default) or postgres'
   end
 end

@@ -1,10 +1,10 @@
-RDS (MySQL) has 3 different types of logs: general, slow queries and errors. Each type outputs logs in a different format. That's fine and dandy if you're going to look at them from a shell, but if you want to inject them in [Logstash](https://www.elastic.co/products/logstash), you need them in a structured format.
+RDS (MySQL) has 3 different types of logs: general, slow queries and errors. Each type outputs logs in a different format. That's fine and dandy if you're going to look at them from a shell, but if you want to inject them in [Logstash](https://www.elastic.co/products/logstash), you need them in a structured format. RDS (PostgreSQL) also works, but only has "errors" logs.
 
 In order to structure those different types of logs, a little worker was needed. A castor (French for beaver. The beaver name was already used by a different project!). It eats those logs and poops them out cleanly (that's right, i went there!).
 
 ## Supported databases
 
-At the moment, only the RDS MySQL database is supported as far as fetching the logs is concerned. But the parsers should technically work with either RDS (MySQL), MySQL and MariaDB.
+At the moment, only the RDS MySQL and PostgresSQL databases are supported as far as fetching the logs is concerned. But the parsers should technically work with either RDS (MySQL or PostgresSQL), MySQL and MariaDB.
 
 NOTE: Pull requests encouraged :)
 
@@ -19,7 +19,7 @@ NOTE: Pull requests encouraged :)
 + It will parse those logs based on the type and output them in JSON to STDOUT
 + It will write the last marker in castor.json
 + Next time it runs, castor will check if there's a known last marker, if so, it'll asks for logs past that marker
- 
+
 NOTE: You can use our Chef [cookbook](https://github.com/lightspeedretail/chef-castor) to deploy it also. The cookbook takes care of creating CRON jobs to run it periodically.
 
 ## AWS Instance profile
@@ -58,9 +58,10 @@ NOTE: You can use our Chef [cookbook](https://github.com/lightspeedretail/chef-c
 Usage: castor (options)
     -d DATA_DIRECTORY,               Data directory (default: /tmp/castor)
         --data-directory
+        --db-type (mysql|postgres)   Database type: mysql (default) or postgres
     -D, --debug                      Debugging mode (default: false)
     -i, --instance INSTANCE          RDS instance name (required)
-    -t, --type LOG_TYPE              Log type to fetch/parse (required) (included in ['general', 'slowquery', 'error'])
+    -t, --type LOG_TYPE              Log type to fetch/parse (PostgreSQL only has "error") (required) (included in ['general', 'slowquery', 'error'])
     -p, --profile PROFILE            AWS profile to use in ~/.aws/credentials
     -r, --region REGION              AWS region (default: us-east-1)
     -v, --version                    Print version
